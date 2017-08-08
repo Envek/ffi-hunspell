@@ -40,6 +40,9 @@ module FFI
         @ptr = if key then Hunspell.Hunspell_create_key(affix_path,dic_path,key)
                else        Hunspell.Hunspell_create(affix_path,dic_path)
                end
+
+        releaser = proc { Hunspell.Hunspell_destroy(@ptr) unless @ptr.nil? }
+        ObjectSpace.define_finalizer(self, releaser)
       end
 
       #
@@ -242,10 +245,9 @@ module FFI
       # @return [nil]
       #
       def close
-        Hunspell.Hunspell_destroy(self)
-
+        return if @ptr.nil?
+        Hunspell.Hunspell_destroy(@ptr)
         @ptr = nil
-        return nil
       end
 
       #
